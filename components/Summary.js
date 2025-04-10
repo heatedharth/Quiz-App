@@ -1,50 +1,115 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 export function Summary({ route }) {
     const { data, answers } = route.params;
 
-    const getScore = () => {
-        return answers.reduce((score, answer, i) => {
-            const correct = data[i].correct;
-            if (answer.type === 'multiple-answer') {
-                const aSet = new Set(answer.selected);
-                const cSet = new Set(correct);
-                if (aSet.size === cSet.size && [...aSet].every(x => cSet.has(x))) return score + 1;
-            } else if (answer.selected === correct) {
-                return score + 1;
-            }
-            return score;
-        }, 0);
+    let score = 0;
+
+    const renderChoices = (question, userAnswer, index) => {
+        return question.choices.map((choice, i) => {
+            const isCorrect =
+                question.type === 'multiple-answer'
+                    ? question.correct.includes(i)
+                    : question.correct === i;
+
+            const wasSelected = question.type === 'multiple-answer'
+                ? userAnswer && userAnswer.includes(i)
+                : userAnswer === i;
+
+            const choiceStyle = wasSelected
+                ? isCorrect
+                    ? styles.correctAnswer
+                    : styles.wrongAnswer
+                : isCorrect
+                    ? styles.correctAnswer
+                    : styles.defaultAnswer;
+
+            return (
+                <Text key={i} style={choiceStyle}>
+                    - {choice}
+                </Text>
+            );
+        });
     };
 
+    // Calculate the score by checking each answer
+    data.forEach((question, index) => {
+        const userAnswer = answers[index];
+        if (question.type === 'multiple-answer') {
+            if (userAnswer && userAnswer.length === question.correct.length && userAnswer.every(answer => question.correct.includes(answer))) {
+                score++;
+            }
+        } else {
+            if (userAnswer === question.correct) {
+                score++;
+            }
+        }
+    });
+
     return (
-        <View style={styles.container}>
-            <Text testID="total" style={styles.score}>Score: {getScore()} / {data.length}</Text>
-            {data.map((q, i) => (
-                <View key={i} style={styles.questionBlock}>
-                    <Text style={styles.prompt}>{q.prompt}</Text>
-                    {q.choices.map((choice, j) => {
-                        const userSelected = answers[i].selected;
-                        const isCorrect = Array.isArray(q.correct) ? q.correct.includes(j) : q.correct === j;
-                        const wasChosen = Array.isArray(userSelected) ? userSelected.includes(j) : userSelected === j;
-                        const style = {
-                            fontWeight: isCorrect && wasChosen ? 'bold' : 'normal',
-                            textDecorationLine: !isCorrect && wasChosen ? 'line-through' : 'none',
-                        };
-                        return (
-                            <Text key={j} style={style}>- {choice}</Text>
-                        );
-                    })}
-                </View>
-            ))}
-        </View>
+        <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.inner}>
+                <Text style={styles.scoreText}>Score: {score} / {data.length}</Text>
+
+                {data.map((question, i) => (
+                    <View key={i} style={styles.questionBlock}>
+                        <Text style={styles.questionText}>{question.prompt}</Text>
+                        {renderChoices(question, answers[i], i)}
+                    </View>
+                ))}
+            </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { padding: 20 },
-    score: { fontSize: 22, marginBottom: 20 },
-    questionBlock: { marginBottom: 15 },
-    prompt: { fontSize: 16, fontWeight: '600', marginBottom: 5 }
+    container: {
+        flexGrow: 1,
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#f5f5f5',
+    },
+    inner: {
+        maxWidth: 1000,
+        width: '100%',
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 3,
+    },
+    scoreText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 30,
+    },
+    questionBlock: {
+        marginBottom: 25,
+    },
+    questionText: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    correctAnswer: {
+        color: 'green',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginVertical: 2,
+    },
+    wrongAnswer: {
+        color: 'red',
+        textDecorationLine: 'line-through',
+        textAlign: 'center',
+        marginVertical: 2,
+    },
+    defaultAnswer: {
+        textAlign: 'center',
+        marginVertical: 2,
+    },
 });

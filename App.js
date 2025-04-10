@@ -8,19 +8,19 @@ const Stack = createNativeStackNavigator();
 
 const quizData = [
   {
-    prompt: "This is the question...",
+    prompt: "What is the logo on the UCF tab?",
     type: "multiple-choice",
-    choices: ["choice 1", "choice 2", "choice 3", "choice 4"],
+    choices: ["Pegasus", "Prince", "Cardinal", "Mustang"],
     correct: 0, // correct: "choice 1"
   },
   {
-    prompt: "This is another question...",
+    prompt: "Which animal breathes underwater?",
     type: "multiple-answer",
-    choices: ["choice 1", "choice 2", "choice 3", "choice 4"],
+    choices: ["Fish", "Lizard", "Seahorse", "Cats"],
     correct: [0, 2], // correct: "choice 1", "choice 3"
   },
   {
-    prompt: "This is the third question...",
+    prompt: "Is grass green?",
     type: "true-false",
     choices: ["False", "True"],
     correct: 1, // correct: "True"
